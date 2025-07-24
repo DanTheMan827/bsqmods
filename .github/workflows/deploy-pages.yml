@@ -70,11 +70,11 @@ jobs:
           tag: "cache"
           notes: "This is used to hold data between page deployments."
 
-      - name: Ensure ${{ env.MIRROR_METADATA_RELEASE }} release exists
+      - name: Ensure mirror-metadata release exists
         uses: ./.github/actions/ensure-release
         with:
           title: "Mirror Metadata"
-          tag: "${{ env.MIRROR_METADATA_RELEASE }}"
+          tag: "mirror-metadata"
           notes: "This is used to hold metadata for the mirrored mods."
 
       - uses: actions/setup-node@v4
