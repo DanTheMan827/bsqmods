@@ -9,11 +9,8 @@ import { computeBufferSha1 } from "./shared/computeBufferSha1";
 import { isNullOrWhitespace } from "../shared/isNullOrWhitespace";
 import { Dictionary } from "../shared/types/Dictionary";
 import { MirrorError } from "../shared/types/MirrorError";
-import { getMirrorMetadata, mirrorRelease } from "../shared/types/MirrorMetadata";
+import { getMirrorMetadata } from "../shared/types/MirrorMetadata";
 import { argv } from "process";
-
-let fileCounter = 0;
-let mirrorCounter = 1;
 
 const mirrorMetadata: Dictionary<MirrorError | string> = await getMirrorMetadata();
 
@@ -37,17 +34,20 @@ function getMirrorStats(mirrorMetadata: Dictionary<MirrorError | string>) {
     .filter((file) => file.startsWith(getMirrorPath(knownMirrors.length)))
     .filter((value, index, array) => array.indexOf(value) === index);
 
+  const mirrorCounter = Math.max(1, knownMirrors.length);
+  const fileCounter = currentMirrorFiles.length;
+
   return {
     mirrorFiles,
     knownMirrors,
-    currentMirrorFiles
+    currentMirrorFiles,
+    mirrorCounter,
+    fileCounter
   };
 }
 
 const { knownMirrors, currentMirrorFiles } = getMirrorStats(mirrorMetadata);
-
-mirrorCounter = Math.max(1, knownMirrors.length);
-fileCounter = currentMirrorFiles.length;
+let { mirrorCounter, fileCounter } = getMirrorStats(mirrorMetadata);
 
 console.log(`Found ${knownMirrors.length} known mirrors.`);
 console.log(`Current mirror: ${getMirrorPath()}`);
@@ -149,14 +149,11 @@ async function processMod(mod: { download: string | null }, iteration?: ModItera
   } else if (mod.download.toLowerCase().endsWith(".zip")) {
     mirrorExtension = "zip";
   }
-
+  ``;
   const mirrorFilename = `${filenameParts.join("-")}.${mirrorExtension}`.replace(/[^\.a-zA-Z0-9_-]+/g, "_").replace(/_+/g, "_");
   const targetPath = join(modMirrorPath, getMirrorPath(), mirrorFilename);
-  const { mirrorFiles, knownMirrors, currentMirrorFiles } = getMirrorStats(mirrorMetadata);
-  console.log(currentMirrorFiles);
+  const { mirrorFiles } = getMirrorStats(mirrorMetadata);
   const existingFiles = mirrorFiles.filter((file) => file.split("/").pop() == mirrorFilename);
-  console.log(existingFiles);
-  console.log(mirrorFilename);
   mirrorMetadata[mod.download] = existingFiles.length ? existingFiles[0] : `${getMirrorPath()}/${mirrorFilename}`;
 
   if (!existsSync(targetPath) && existingFiles.length == 0) {

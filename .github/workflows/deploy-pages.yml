@@ -60,9 +60,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set mod mirror environment variables
-        uses: ./.github/actions/set-mirror-env
-
       - name: Ensure cache release exists
         uses: ./.github/actions/ensure-release
         with:
@@ -162,7 +159,7 @@ jobs:
           mkdir -p mod-mirror
 
           cd source/scripts
-          if gh release view "${{ env.MIRROR_METADATA_RELEASE }}" --json assets --jq '.assets[].name' | grep -q "metadata.json"; then
+          if gh release view "mirror-metadata" --json assets --jq '.assets[].name' | grep -q "metadata.json"; then
             npx tsx ./mirror-mods.ts 2>&1
           else
             npx tsx ./mirror-mods.ts --allowEmpty 2>&1
@@ -188,7 +185,7 @@ jobs:
 
           if [ -f "metadata.json" ]; then
 
-            gh release upload "${{ env.MIRROR_METADATA_RELEASE }}" --clobber "metadata.json"
+            gh release upload "mirror-metadata" --clobber "metadata.json"
           fi
 
       - name: Trigger so-info.json update if needed
