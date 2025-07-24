@@ -166,6 +166,8 @@ jobs:
 
           cd ../../mod-mirror
 
+          RELEASES_JSON="$(curl -s -H "Authorization: token $GH_TOKEN" "https://api.github.com/repos/$GITHUB_REPOSITORY/releases")"
+
           # Loop through the folders in the current directory
           for dir in *; do
             if [ ! -d "$dir" ]; then
@@ -175,6 +177,19 @@ jobs:
             # Check if the current directory exists as a GitHub release, else create it.
             if ! gh release view "$dir" &> /dev/null; then
               gh release create "$dir" -t "$dir" -p --notes "A release to hold mirrored mods."
+            else
+              # Extract the release matching the tag_name == $dir
+              RELEASE=$(echo "$RELEASES_JSON" | jq --arg tag "$dir" '.[] | select(.tag_name == $tag)')
+
+              # If the release exists
+              if [ -n "$RELEASE" ]; then
+                echo "$RELEASE" | jq -r '.assets[]? | .name' | while read -r asset_name; do
+                local_path="$dir/$asset_name"
+                if [ -f "$local_path" ]; then
+                  echo "Deleting local file: $local_path"
+                  rm "$local_path"
+                fi
+              done
             fi
 
             find "$dir" -type f | while read file; do
