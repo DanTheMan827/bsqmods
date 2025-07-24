@@ -17,7 +17,7 @@ runs:
   using: "composite"
   steps:
     - name: Ensure release exists
-      id: ensure_release
+      shell: bash
       run: |
         if ! gh release view "${{ inputs.tag }}" &> /dev/null; then
           gh release create "${{ inputs.tag }}" --title "${{ inputs.title || inputs.tag }}" --notes "${{ inputs.notes }}"
