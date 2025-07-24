@@ -102,7 +102,13 @@ jobs:
       - name: Download mirror metadata
         run: |
           mkdir -p downloaded_files
-          wget "https://github.com/$GITHUB_REPOSITORY/releases/download/mirror-metadata/metadata.json?`date +%s`" -O downloaded_files/metadata.json
+          wget --spider "https://github.com/$GITHUB_REPOSITORY/releases/download/mirror-metadata/metadata.json?$(date +%s)" 2>&1 | tee wget.log
+          if grep -q "404 Not Found" wget.log; then
+            echo '{}' > downloaded_files/metadata.json
+          else
+            wget "https://github.com/$GITHUB_REPOSITORY/releases/download/mirror-metadata/metadata.json?$(date +%s)" -O downloaded_files/metadata.json
+          fi
+          rm wget.log
 
       - name: Upload cache.txz
         uses: actions/upload-artifact@v4
