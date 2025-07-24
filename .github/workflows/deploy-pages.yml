@@ -178,12 +178,13 @@ jobs:
             fi
 
             find "$dir" -type f | while read file; do
+              echo "Uploading $file"
               gh release upload "$dir" "$file"
             done
           done
 
           if [ -f "metadata.json" ]; then
-
+            echo "Uploading metadata.json"
             gh release upload "mirror-metadata" --clobber "metadata.json"
           fi
 
