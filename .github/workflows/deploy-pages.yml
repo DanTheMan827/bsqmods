@@ -184,12 +184,13 @@ jobs:
               # If the release exists
               if [ -n "$RELEASE" ]; then
                 echo "$RELEASE" | jq -r '.assets[]? | .name' | while read -r asset_name; do
-                local_path="$dir/$asset_name"
-                if [ -f "$local_path" ]; then
-                  echo "Deleting local file: $local_path"
-                  rm "$local_path"
-                fi
-              done
+                  local_path="$dir/$asset_name"
+                  if [ -f "$local_path" ]; then
+                    echo "Deleting local file: $local_path"
+                    rm "$local_path"
+                  fi
+                done
+              fi
             fi
 
             find "$dir" -type f | while read file; do
