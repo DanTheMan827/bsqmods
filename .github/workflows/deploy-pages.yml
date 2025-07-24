@@ -60,13 +60,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Ensure cache release exists
-        uses: ./.github/actions/ensure-release
-        with:
-          title: "Deployment Cache"
-          tag: "cache"
-          notes: "This is used to hold data between page deployments."
-
       - name: Ensure mirror-metadata release exists
         uses: ./.github/actions/ensure-release
         with:
@@ -251,6 +244,13 @@ jobs:
         with:
           # Upload entire repository
           path: "./source/website/out"
+
+      - name: Ensure cache release exists
+        uses: ./.github/actions/ensure-release
+        with:
+          title: "Deployment Cache"
+          tag: "cache"
+          notes: "This is used to hold data between page deployments."
 
       - name: Push cache
         env:
