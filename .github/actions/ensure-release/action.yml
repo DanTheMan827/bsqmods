@@ -23,4 +23,4 @@ runs:
           gh release create "${{ inputs.tag }}" --title "${{ inputs.title || inputs.tag }}" --notes "${{ inputs.notes }}"
         fi
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ github.token }}
