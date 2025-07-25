@@ -155,6 +155,40 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          upload_to_release() {
+            local GH_TOKEN="$1"
+            local REPO="$2"           # e.g. owner/repo
+            local RELEASE_ID="$3"
+            local FILE="$4"
+            local NAME="$5"           # e.g. "$(basename "$FILE")"
+            local CONTENT_TYPE="$6"   # e.g. "application/zip"
+          
+            local UPLOAD_URL="https://uploads.github.com/repos/$REPO/releases/$RELEASE_ID/assets?name=$(basename "$NAME")"
+          
+            echo "Uploading $FILE to release $RELEASE_ID as $NAME..."
+          
+            # Perform upload and capture both response body and status code
+            response=$(curl -s -w "\n%{http_code}" \
+              -X POST \
+              -H "Authorization: token $GH_TOKEN" \
+              -H "Content-Type: $CONTENT_TYPE" \
+              --data-binary @"$FILE" \
+              "$UPLOAD_URL")
+          
+            # Split response and status code
+            body=$(echo "$response" | sed '$d')
+            status=$(echo "$response" | tail -n1)
+          
+            if [[ "$status" == "201" ]]; then
+              echo "✅ Upload succeeded: $NAME"
+            else
+              echo "❌ Upload failed ($status): $NAME"
+              echo "Response:"
+              echo "$body" | jq .
+              return 1
+            fi
+          }
+          
           mkdir -p mod-mirror
 
           cd source/scripts
@@ -166,7 +200,7 @@ jobs:
 
           cd ../../mod-mirror
 
-          RELEASES_JSON="$(curl -s -H "Authorization: token $GH_TOKEN" "https://api.github.com/repos/$GITHUB_REPOSITORY/releases")"
+          
 
           # Loop through the folders in the current directory
           for dir in *; do
@@ -177,25 +211,28 @@ jobs:
             # Check if the current directory exists as a GitHub release, else create it.
             if ! gh release view "$dir" &> /dev/null; then
               gh release create "$dir" -t "$dir" -p --notes "A release to hold mirrored mods."
-            else
-              # Extract the release matching the tag_name == $dir
-              RELEASE=$(echo "$RELEASES_JSON" | jq --arg tag "$dir" '.[] | select(.tag_name == $tag)')
+            fi
 
-              # If the release exists
-              if [ -n "$RELEASE" ]; then
-                echo "$RELEASE" | jq -r '.assets[]? | .name' | while read -r asset_name; do
-                  local_path="$dir/$asset_name"
-                  if [ -f "$local_path" ]; then
-                    echo "Deleting local file: $local_path"
-                    rm "$local_path"
-                  fi
-                done
-              fi
+            RELEASES_JSON="$(curl -s -H "Authorization: token $GH_TOKEN" "https://api.github.com/repos/${{ github.repository }}/releases")"
+              
+            # Extract the release matching the tag_name == $dir
+            RELEASE=$(echo "$RELEASES_JSON" | jq --arg tag "$dir" '.[] | select(.tag_name == $tag)')
+            RELEASE_ID=$(echo "$RELEASE" | jq -r '.id')
+
+            # If the release exists
+            if [ -n "$RELEASE" ]; then
+              echo "$RELEASE" | jq -r '.assets[]? | .name' | while read -r asset_name; do
+                local_path="$dir/$asset_name"
+                if [ -f "$local_path" ]; then
+                  echo "Deleting local file: $local_path"
+                  rm "$local_path"
+                fi
+              done
             fi
 
             find "$dir" -type f | while read file; do
-              echo "Uploading $file"
-              gh release upload "$dir" "$file"
+              echo -n "Uploading $file ... "
+              upload_to_release "${{ github.token }}" "${{ github.repository }}" "$RELEASE_ID" "$file" "$(basename "$file")" "application/octet-stream"
             done
           done
 
