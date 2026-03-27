@@ -6,7 +6,7 @@
   "author": "TheZipCreator",
   "authorIcon": "https://avatars.githubusercontent.com/u/27882876?v=4",
   "modloader": "Scotland2",
-  "download": "https://github.com/TheZipCreator/endless-qmod/releases/download/v0.1.1/Endless.qmod",
+  "download": "https://github.com/zipsegv/endless-qmod/releases/download/v0.1.1/Endless.qmod",
   "dependencies": [
     {
       "id": "bsml",
@@ -29,8 +29,8 @@
       "version": "^1.1.15"
     }
   ],
-  "source": "https://github.com/TheZipCreator/endless-qmod/",
-  "cover": "https://raw.githubusercontent.com/TheZipCreator/endless-qmod/main/cover.png",
+  "source": "https://github.com/zipsegv/endless-qmod/",
+  "cover": "https://raw.githubusercontent.com/zipsegv/endless-qmod/main/cover.png",
   "funding": [],
-  "website": "https://github.com/TheZipCreator/endless-qmod/"
+  "website": "https://github.com/zipsegv/endless-qmod/"
 }
